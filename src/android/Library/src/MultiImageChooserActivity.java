@@ -173,8 +173,8 @@ public class MultiImageChooserActivity extends Activity implements OnItemClickLi
         setupHeader();
         updateAcceptButton();
         progress = new ProgressDialog(this);
-        progress.setTitle("Processing Images");
-        progress.setMessage("This may take a few moments");
+        progress.setTitle("正在添加");
+        progress.setMessage("请稍后");
     }
     
     @Override
@@ -189,9 +189,9 @@ public class MultiImageChooserActivity extends Activity implements OnItemClickLi
         if (maxImages == 0 && isChecked) {
             isChecked = false;
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Maximum " + maxImageCount + " Photos");
-            builder.setMessage("You can only select " + maxImageCount + " photos at a time.");
-            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            builder.setTitle("提示");
+            builder.setMessage("最多可同时选取 " + maxImageCount + " 张照片");
+            builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int which) { 
                     dialog.cancel();
                 }
@@ -296,12 +296,33 @@ public class MultiImageChooserActivity extends Activity implements OnItemClickLi
         getActionBar().getCustomView().findViewById(fakeR.getId("id", "actionbar_done")).setEnabled(false);
         progress.show();
         Intent data = new Intent();
+		//Bitmap bmp;
+			String json;
         if (fileNames.isEmpty()) {
             this.setResult(RESULT_CANCELED);
             progress.dismiss();
             finish();
         } else {
-            new ResizeImagesTask().execute(fileNames.entrySet());
+            //new ResizeImagesTask().execute(fileNames.entrySet());
+			ArrayList<String> al = new ArrayList<String>();
+			Iterator<Map.Entry<String, Integer>> entries = fileNames.entrySet().iterator();
+			while (entries.hasNext()) {  
+				Map.Entry<String, Integer> entry = entries.next();  
+				//bmp = BitmapFactory.decodeFile(entry.getKey());
+				//json = "{\"path\":\""+entry.getKey()+"\",\"width\":"+bmp.getWidth()+",\"height\":"+bmp.getHeight()+"}";
+				al.add(entry.getKey());
+			}
+			if (al.size() > 0) {
+                Bundle res = new Bundle();
+                res.putStringArrayList("MULTIPLEFILENAMES", al);
+                data.putExtras(res);
+                setResult(RESULT_OK, data);
+            } else {
+                setResult(RESULT_CANCELED, data);
+            }
+
+            progress.dismiss();
+            finish();
         }
     }
     

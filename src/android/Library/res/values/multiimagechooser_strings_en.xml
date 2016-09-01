@@ -8,6 +8,6 @@
     <string name="processing_images_message">This may take a few moments</string>
     <string name="maximum_selection_count_error_header">Limit reached</string>
     <string name="maximum_selection_count_error_message">You can only select %d photos at once.</string>
-    <string name="discard">Cancel</string>
-    <string name="done">OK</string>
+    <string name="discard">取消</string>
+    <string name="done">确定</string>
 </resources>
