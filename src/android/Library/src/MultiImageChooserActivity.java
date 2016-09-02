@@ -296,8 +296,8 @@ public class MultiImageChooserActivity extends Activity implements OnItemClickLi
         getActionBar().getCustomView().findViewById(fakeR.getId("id", "actionbar_done")).setEnabled(false);
         progress.show();
         Intent data = new Intent();
-		//Bitmap bmp;
-			String json;
+		String json;
+		File file;
         if (fileNames.isEmpty()) {
             this.setResult(RESULT_CANCELED);
             progress.dismiss();
@@ -308,9 +308,8 @@ public class MultiImageChooserActivity extends Activity implements OnItemClickLi
 			Iterator<Map.Entry<String, Integer>> entries = fileNames.entrySet().iterator();
 			while (entries.hasNext()) {  
 				Map.Entry<String, Integer> entry = entries.next();  
-				//bmp = BitmapFactory.decodeFile(entry.getKey());
-				//json = "{\"path\":\""+entry.getKey()+"\",\"width\":"+bmp.getWidth()+",\"height\":"+bmp.getHeight()+"}";
-				al.add(entry.getKey());
+				file = new File(entry.getKey());
+				al.add(Uri.fromFile(file).toString());
 			}
 			if (al.size() > 0) {
                 Bundle res = new Bundle();
