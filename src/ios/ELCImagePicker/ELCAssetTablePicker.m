@@ -27,6 +27,9 @@
         //Sets a reasonable default bigger then 0 for columns
         //So that we don't have a divide by 0 scenario
         self.columns = 4;
+		if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+			self.columns = 12;
+		}
     }
     return self;
 }
@@ -54,11 +57,14 @@
 {
     [super viewWillAppear:animated];
     self.columns = self.view.bounds.size.width / 80;
+	if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+		self.columns = 12;
+	}
 }
 
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation
+-(BOOL)shouldAutorotate
 {
-    return YES;
+    return NO;
 }
 
 - (void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation
@@ -167,6 +173,9 @@
 {
     if (self.columns <= 0) { //Sometimes called before we know how many columns we have
         self.columns = 4;
+		if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+			self.columns = 12;
+		}
     }
     NSInteger numRows = ceil([self.elcAssets count] / (float)self.columns);
     return numRows;
