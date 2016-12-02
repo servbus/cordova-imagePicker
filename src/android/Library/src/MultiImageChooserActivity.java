@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -96,7 +97,7 @@ public class MultiImageChooserActivity extends Activity implements OnItemClickLi
     private static final int CURSORLOADER_THUMBS = 0;
     private static final int CURSORLOADER_REAL = 1;
 
-    private Map<String, Integer> fileNames = new HashMap<String, Integer>();
+    private Map<String, Integer> fileNames = new LinkedHashMap<String, Integer>();
 
     private SparseBooleanArray checkStatus = new SparseBooleanArray();
 
@@ -128,6 +129,8 @@ public class MultiImageChooserActivity extends Activity implements OnItemClickLi
         maxImages = getIntent().getIntExtra(MAX_IMAGES_KEY, NOLIMIT);
         desiredWidth = getIntent().getIntExtra(WIDTH_KEY, 0);
         desiredHeight = getIntent().getIntExtra(HEIGHT_KEY, 0);
+		desiredWidth = 200;
+		desiredHeight = 200;
         quality = getIntent().getIntExtra(QUALITY_KEY, 0);
         maxImageCount = maxImages;
 
@@ -303,25 +306,25 @@ public class MultiImageChooserActivity extends Activity implements OnItemClickLi
             progress.dismiss();
             finish();
         } else {
-            //new ResizeImagesTask().execute(fileNames.entrySet());
-			ArrayList<String> al = new ArrayList<String>();
-			Iterator<Map.Entry<String, Integer>> entries = fileNames.entrySet().iterator();
-			while (entries.hasNext()) {  
-				Map.Entry<String, Integer> entry = entries.next();  
-				file = new File(entry.getKey());
-				al.add(Uri.fromFile(file).toString());
-			}
-			if (al.size() > 0) {
-                Bundle res = new Bundle();
-                res.putStringArrayList("MULTIPLEFILENAMES", al);
-                data.putExtras(res);
-                setResult(RESULT_OK, data);
-            } else {
-                setResult(RESULT_CANCELED, data);
-            }
-
-            progress.dismiss();
-            finish();
+            new ResizeImagesTask().execute(fileNames.entrySet());
+			//ArrayList<String> al = new ArrayList<String>();
+			//Iterator<Map.Entry<String, Integer>> entries = fileNames.entrySet().iterator();
+			//while (entries.hasNext()) {  
+			//	Map.Entry<String, Integer> entry = entries.next();  
+			//	file = new File(entry.getKey());
+			//	al.add(Uri.fromFile(file).toString());
+			//}
+			//if (al.size() > 0) {
+            //    Bundle res = new Bundle();
+            //    res.putStringArrayList("MULTIPLEFILENAMES", al);
+            //    data.putExtras(res);
+            //    setResult(RESULT_OK, data);
+            //} else {
+            //    setResult(RESULT_CANCELED, data);
+            //}
+			//
+            //progress.dismiss();
+            //finish();
         }
     }
     
@@ -500,13 +503,13 @@ public class MultiImageChooserActivity extends Activity implements OnItemClickLi
     }
     
     
-    private class ResizeImagesTask extends AsyncTask<Set<Entry<String, Integer>>, Void, ArrayList<String>> {
+    private class ResizeImagesTask extends AsyncTask<Set<Entry<String, Integer>>, Void, ArrayList> {
         private Exception asyncTaskError = null;
 
         @Override
-        protected ArrayList<String> doInBackground(Set<Entry<String, Integer>>... fileSets) {
+        protected ArrayList doInBackground(Set<Entry<String, Integer>>... fileSets) {
             Set<Entry<String, Integer>> fileNames = fileSets[0];
-            ArrayList<String> al = new ArrayList<String>();
+            ArrayList al = new ArrayList();
             try {
                 Iterator<Entry<String, Integer>> i = fileNames.iterator();
                 Bitmap bmp;
@@ -557,28 +560,37 @@ public class MultiImageChooserActivity extends Activity implements OnItemClickLi
                         }
                     }
 
-                    file = this.storeImage(bmp, file.getName());
-                    al.add(Uri.fromFile(file).toString());
+                    //file = this.storeImage(bmp, file.getName());
+					ArrayList<String> alBoth = new ArrayList<String>();
+					File file_t = this.storeImage(bmp, file.getName());
+                    alBoth.add(Uri.fromFile(file).toString());
+					alBoth.add(Uri.fromFile(file_t).toString());
+					al.add(alBoth);
                 }
                 return al;
             } catch(IOException e) {
                 try {
                     asyncTaskError = e;
                     for (int i = 0; i < al.size(); i++) {
-                        URI uri = new URI(al.get(i));
+						ArrayList tmpal = (ArrayList)al.get(i);
+                        URI uri = new URI((String)tmpal.get(0));
                         File file = new File(uri);
+                        file.delete();
+
+						uri = new URI((String)tmpal.get(1));
+                        file = new File(uri);
                         file.delete();
                     }
                 } catch(Exception exception) {
                     // the finally does what we want to do
                 } finally {
-                    return new ArrayList<String>();
+                    return new ArrayList();
                 }
             }
         }
         
         @Override
-        protected void onPostExecute(ArrayList<String> al) {
+        protected void onPostExecute(ArrayList al) {
             Intent data = new Intent();
 
             if (asyncTaskError != null) {
@@ -588,7 +600,7 @@ public class MultiImageChooserActivity extends Activity implements OnItemClickLi
                 setResult(RESULT_CANCELED, data);
             } else if (al.size() > 0) {
                 Bundle res = new Bundle();
-                res.putStringArrayList("MULTIPLEFILENAMES", al);
+                res.putParcelableArrayList("MULTIPLEFILENAMES", al);
                 if (imagecursor != null) {
                     res.putInt("TOTALFILES", imagecursor.getCount());
                 }
@@ -637,7 +649,7 @@ public class MultiImageChooserActivity extends Activity implements OnItemClickLi
             int index = fileName.lastIndexOf('.');
             String name = fileName.substring(0, index);
             String ext = fileName.substring(index);
-            File file = File.createTempFile("tmp_" + name, ext);
+            File file = File.createTempFile(name + "_t", ext);
             OutputStream outStream = new FileOutputStream(file);
             if (ext.compareToIgnoreCase(".png") == 0) {
                 bmp.compress(Bitmap.CompressFormat.PNG, quality, outStream);
