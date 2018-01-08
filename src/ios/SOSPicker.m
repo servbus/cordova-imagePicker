@@ -54,13 +54,16 @@
 	CDVPluginResult* result = nil;
 	NSMutableArray *resultStrings = [[NSMutableArray alloc] init];
     NSData* data = nil;
+	NSData* data_t = nil;
     NSString* docsPath = [NSTemporaryDirectory()stringByStandardizingPath];
     NSError* err = nil;
     NSFileManager* fileMgr = [[NSFileManager alloc] init];
     NSString* filePath;
+	NSString* filePath_t;
     ALAsset* asset = nil;
     UIImageOrientation orientation = UIImageOrientationUp;;
     CGSize targetSize = CGSizeMake(self.width, self.height);
+	CGSize targetSize_t = CGSizeMake(200, 200);
 	for (NSDictionary *dict in info) {
         asset = [dict objectForKey:@"ALAsset"];
         // From ELCImagePickerController.m
@@ -68,6 +71,7 @@
         int i = 1;
         do {
             filePath = [NSString stringWithFormat:@"%@/%@%03d.%@", docsPath, CDV_PHOTO_PREFIX, i++, @"jpg"];
+			filePath_t = [NSString stringWithFormat:@"%@/%@%03d_t.%@", docsPath, CDV_PHOTO_PREFIX, i - 1, @"jpg"];
         } while ([fileMgr fileExistsAtPath:filePath]);
         
         @autoreleasepool {
@@ -86,17 +90,27 @@
             UIImage* image = [UIImage imageWithCGImage:imgRef scale:1.0f orientation:orientation];
             if (self.width == 0 && self.height == 0) {
                 data = UIImageJPEGRepresentation(image, self.quality/100.0f);
+				UIImage* scaledImage_t = [self imageByScalingNotCroppingForSize:image toSize:targetSize_t];
+                data_t = UIImageJPEGRepresentation(scaledImage_t, self.quality/100.0f);
             } else {
                 UIImage* scaledImage = [self imageByScalingNotCroppingForSize:image toSize:targetSize];
                 data = UIImageJPEGRepresentation(scaledImage, self.quality/100.0f);
+				//thumb
+				UIImage* scaledImage_t = [self imageByScalingNotCroppingForSize:image toSize:targetSize_t];
+                data_t = UIImageJPEGRepresentation(scaledImage_t, self.quality/100.0f);
             }
             
-            if (![data writeToFile:filePath options:NSAtomicWrite error:&err]) {
-                result = [CDVPluginResult resultWithStatus:CDVCommandStatus_IO_EXCEPTION messageAsString:[err localizedDescription]];
-                break;
-            } else {
-                [resultStrings addObject:[[NSURL fileURLWithPath:filePath] absoluteString]];
-            }
+			if (![data_t writeToFile:filePath_t options:NSAtomicWrite error:&err]) {
+				result = [CDVPluginResult resultWithStatus:CDVCommandStatus_IO_EXCEPTION messageAsString:[err localizedDescription]];
+				break;
+			} else {
+				if (![data writeToFile:filePath options:NSAtomicWrite error:&err]) {
+					result = [CDVPluginResult resultWithStatus:CDVCommandStatus_IO_EXCEPTION messageAsString:[err localizedDescription]];
+					break;
+				} else {
+					[resultStrings addObject:[[NSURL fileURLWithPath:filePath] absoluteString]];
+				}
+			}
         }
 
 	}
