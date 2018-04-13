@@ -117,8 +117,7 @@ public class ImagePicker extends CordovaPlugin {
 		for (int r : grantResults) {
 			if (r == PackageManager.PERMISSION_DENIED) {
 				Log.d(TAG, "Permission Denied!");
-				result = new PluginResult(PluginResult.Status.ILLEGAL_ACCESS_EXCEPTION);
-				this.callbackContext.sendPluginResult(result);
+				this.callbackContext.error("未获得授权使用存储或相机，请在设置中打开");
 				return;
 			}
 		}
