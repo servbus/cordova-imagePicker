@@ -40,6 +40,7 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
+import java.util.Map.Entry;
 
 /**
  * This helper class download images from the Internet and binds those with the
@@ -290,7 +291,7 @@ public class ImageFetcher {
     private final HashMap<Integer, Bitmap> sHardBitmapCache = new LinkedHashMap<Integer, Bitmap>(
             HARD_CACHE_CAPACITY / 2, 0.75f, true) {
         @Override
-        protected boolean removeEldestEntry(LinkedHashMap.Entry<Integer, Bitmap> eldest) {
+        protected boolean removeEldestEntry(Entry<Integer, Bitmap> eldest) {
             if (size() > HARD_CACHE_CAPACITY) {
                 // Entries push-out of hard reference cache are transferred to
                 // soft reference cache
